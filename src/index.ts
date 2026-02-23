@@ -2,6 +2,7 @@ import type { Plugin } from 'rolldown'
 import { parse } from '@vue/compiler-sfc'
 import ts from 'typescript'
 import path from 'node:path'
+import MagicString from 'magic-string'
 
 type VueMacroTypesOptions = {
   tsconfig?: string
@@ -157,9 +158,26 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
 
         // 第 4 步：序列化为类型字面量字符串
         const typeString = serializeType(resolvedType, checker)
-        console.log(`[vue-macro-types] 解析结果: ${typeString}`)
 
-        // TODO: 第 5 步 - 用 typeString 替换源码中的类型参数
+        // 第 5 步：替换源码中的类型参数
+        // scriptSetup.loc.start.offset 是 <script setup> 内容在整个 .vue 文件中的偏移量
+        const offset = scriptSetup.loc.start.offset
+        const matchIndex = definePropsMatch.index!
+        const fullMatch = definePropsMatch[0]!
+        // 定位 defineProps<...>() 中 < 和 > 的位置
+        const angleBracketStart = fullMatch.indexOf('<')
+        const angleBracketEnd = fullMatch.lastIndexOf('>')
+        // 在整个 .vue 文件中的绝对位置
+        const replaceStart = offset + matchIndex + angleBracketStart + 1
+        const replaceEnd = offset + matchIndex + angleBracketEnd
+
+        const s = new MagicString(code)
+        s.overwrite(replaceStart, replaceEnd, typeString)
+
+        return {
+          code: s.toString(),
+          map: s.generateMap({ hires: true }),
+        }
       },
     },
   }

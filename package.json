@@ -17,12 +17,16 @@
     "build": "tsdown",
     "dev": "tsdown --watch"
   },
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.5.28",
+    "magic-string": "^0.30.21"
+  },
   "peerDependencies": {
-    "rolldown": "^1.0.0-rc.5"
+    "rolldown": "^1.0.0-rc.1",
+    "typescript": "^5.0.0 || ^6.0.0-beta"
   },
   "devDependencies": {
     "@types/bun": "^1.3.9",
-    "@vue/compiler-sfc": "^3.5.28",
     "rolldown": "^1.0.0-rc.5",
     "tsdown": "^0.20.3",
     "typescript": "^6.0.0-beta"
