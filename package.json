@@ -1,12 +1,28 @@
 {
   "name": "rolldown-plugin-vue-macro-types",
-  "module": "index.ts",
+  "version": "0.0.1",
   "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "rolldown": "^1.0.0-rc.1"
+  },
+  "devDependencies": {
+    "rolldown": "^1.0.0-rc.5",
+    "tsdown": "^0.20.3",
+    "typescript": "^6.0.0-beta"
   }
 }
