@@ -7,9 +7,10 @@
       "devDependencies": {
         "rolldown": "^1.0.0-rc.5",
         "tsdown": "^0.20.3",
+        "typescript": "^6.0.0-beta",
       },
       "peerDependencies": {
-        "typescript": "^6.0.0-beta",
+        "rolldown": "^1.0.0-rc.1",
       },
     },
   },
