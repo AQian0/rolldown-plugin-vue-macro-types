@@ -71,9 +71,30 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const sourceFile = program.getSourceFile(virtualFileName)
         if (!sourceFile) return
 
-        console.log(`[vue-macro-types] TS Program 创建成功，准备解析类型`)
+        // 第 3 步：遍历 AST 定位 defineProps<T>() 调用，解析类型参数
+        let resolvedType: ts.Type | undefined
 
-        // TODO: 第 3 步 - 遍历 AST 定位 defineProps 调用，用 checker 解析类型
+        const visit = (node: ts.Node): void => {
+          // 查找调用表达式：defineProps<T>()
+          if (
+            ts.isCallExpression(node)
+            && ts.isIdentifier(node.expression)
+            && node.expression.text === 'defineProps'
+            && node.typeArguments?.length === 1
+          ) {
+            const typeNode = node.typeArguments[0]!
+            resolvedType = checker.getTypeFromTypeNode(typeNode)
+            return
+          }
+          ts.forEachChild(node, visit)
+        }
+        visit(sourceFile)
+
+        if (!resolvedType) return
+
+        console.log(`[vue-macro-types] 解析到类型: ${checker.typeToString(resolvedType, undefined, ts.TypeFormatFlags.NoTruncation)}`)
+
+        // TODO: 第 4 步 - 将 resolvedType 序列化为类型字面量字符串
       },
     },
   }
