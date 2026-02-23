@@ -21,6 +21,7 @@
     "rolldown": "^1.0.0-rc.5"
   },
   "devDependencies": {
+    "@vue/compiler-sfc": "^3.5.28",
     "rolldown": "^1.0.0-rc.5",
     "tsdown": "^0.20.3",
     "typescript": "^6.0.0-beta"
