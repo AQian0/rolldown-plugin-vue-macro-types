@@ -18,7 +18,7 @@
     "dev": "tsdown --watch"
   },
   "peerDependencies": {
-    "rolldown": "^1.0.0-rc.1"
+    "rolldown": "^1.0.0-rc.5"
   },
   "devDependencies": {
     "rolldown": "^1.0.0-rc.5",
