@@ -14,9 +14,7 @@ export const locateDefinePropsWithOxc = (
   scriptContent: string,
 ): DefinePropsMatch | undefined => {
   try {
-    const result = parseSync('virtual.ts', scriptContent, {
-      sourceFilename: 'virtual.ts',
-    })
+    const result = parseSync('virtual.ts', scriptContent)
 
     if (result.errors.length > 0) {
       console.warn('[oxc] Parse errors:', result.errors)
