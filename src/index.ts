@@ -143,7 +143,8 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
 
     buildStart() {
       // 预热 LanguageService，将初始化开销从首次 transform 中移出
-      getService(process.cwd())
+      // 传入合成文件路径，因为 getService 内部会对 id 执行 path.dirname()
+      getService(path.join(process.cwd(), '__warmup__.ts'))
     },
 
     transform: {
