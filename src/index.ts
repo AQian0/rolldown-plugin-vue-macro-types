@@ -150,6 +150,7 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
     transform: {
       filter: {
         id: /\.vue$/,
+        code: /defineProps\s*</,
       },
       order: 'pre',
       handler(code, id) {
