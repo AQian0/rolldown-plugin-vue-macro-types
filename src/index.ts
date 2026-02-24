@@ -9,6 +9,8 @@ type VueMacroTypesOptions = {
   tsconfig?: string
 }
 
+const VALID_IDENTIFIER_RE = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u
+
 /**
  * 将 TS Type 对象递归序列化为类型字面量字符串
  * 例如：InferInput<typeof schema> → { name: string; age: number }
@@ -61,7 +63,7 @@ const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
     }
     const members = properties.map((prop) => {
       const rawKey = prop.getName()
-      const key = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u.test(rawKey)
+      const key = VALID_IDENTIFIER_RE.test(rawKey)
         ? rawKey
         : JSON.stringify(rawKey)
       const propType = checker.getTypeOfSymbol(prop)
