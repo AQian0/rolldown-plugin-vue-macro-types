@@ -165,9 +165,6 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const definePropsMatch = locateDefinePropsWithOxc(scriptSetup.content)
         if (!definePropsMatch) return
 
-        const typeArg = definePropsMatch.typeArg.trim()
-        console.log(`[vue-macro-types] 检测到 defineProps<${typeArg}>() in ${id}`)
-
         // 更新虚拟文件并从共享 LanguageService 获取 program
         const virtualFileName = id + '.__setup.ts'
         const scriptContent = scriptSetup.content
