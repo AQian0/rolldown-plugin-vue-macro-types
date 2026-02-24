@@ -80,6 +80,7 @@ const DEFAULT_COMPILER_OPTIONS = {
   target: ts.ScriptTarget.ESNext,
   module: ts.ModuleKind.ESNext,
   moduleResolution: ts.ModuleResolutionKind.Bundler,
+  skipLibCheck: true,
 } as const satisfies ts.CompilerOptions
 
 export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
@@ -131,6 +132,11 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
 
   return {
     name: 'vue-macro-types',
+
+    buildStart() {
+      // 预热 LanguageService，将初始化开销从首次 transform 中移出
+      getService(process.cwd())
+    },
 
     transform: {
       filter: {
