@@ -6,6 +6,12 @@ type DefinePropsMatch = {
   fullMatch: string
 }
 
+const createUtf8ToUtf16Converter = (sourceText: string) => {
+  const sourceTextUtf8 = new TextEncoder().encode(sourceText)
+  return (byteOffset: number): number =>
+    new TextDecoder().decode(sourceTextUtf8.slice(0, byteOffset)).length
+}
+
 /**
  * 使用 oxc-parser 定位 defineProps<T>() 调用
  * 替代正则表达式 /defineProps\s*<([^>]+)>\s*\(\)/
@@ -21,8 +27,8 @@ export const locateDefinePropsWithOxc = (
       return undefined
     }
 
-    // 遍历 AST 查找 defineProps 调用
     const { program } = result
+    const toCharIndex = createUtf8ToUtf16Converter(scriptContent)
     let match: DefinePropsMatch | undefined
 
     const visit = (node: any): void => {
@@ -36,15 +42,12 @@ export const locateDefinePropsWithOxc = (
         && node.typeArguments?.params?.length === 1
       ) {
         const typeParam = node.typeArguments.params[0]
-        const callStart = node.start
-        const callEnd = node.end
+        const callStart = toCharIndex(node.start)
+        const callEnd = toCharIndex(node.end)
+        const typeArgStart = toCharIndex(typeParam.start)
+        const typeArgEnd = toCharIndex(typeParam.end)
 
-        // 提取类型参数字符串
-        const typeArgStart = typeParam.start
-        const typeArgEnd = typeParam.end
         const typeArg = scriptContent.slice(typeArgStart, typeArgEnd)
-
-        // 构造完整匹配字符串
         const fullMatch = scriptContent.slice(callStart, callEnd)
 
         match = {
