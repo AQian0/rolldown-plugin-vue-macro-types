@@ -3,7 +3,7 @@ import { parse } from '@vue/compiler-sfc'
 import ts from 'typescript'
 import path from 'node:path'
 import MagicString from 'magic-string'
-import { locateDefinePropsWithOxc } from './locateDefineProps'
+import { locateDefinePropsWithOxc } from './locateDefineProps.ts'
 
 type VueMacroTypesOptions = {
   tsconfig?: string
@@ -61,12 +61,10 @@ const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
     }
     const members = properties.map((prop) => {
       const rawKey = prop.getName()
-      const key = ts.isIdentifierText(rawKey, ts.ScriptTarget.Latest)
+      const key = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u.test(rawKey)
         ? rawKey
         : JSON.stringify(rawKey)
-      const propType =
-        checker.getTypeOfPropertyOfType(type, rawKey)
-        ?? checker.getTypeOfSymbol(prop)
+      const propType = checker.getTypeOfSymbol(prop)
       const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0
       return `${key}${isOptional ? '?' : ''}: ${serializeType(propType, checker)}`
     })
