@@ -185,18 +185,21 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const sourceFile = program.getSourceFile(virtualFileName)
         if (!sourceFile) return
 
-        // 遍历 AST 定位 defineProps<T>() 调用，解析类型参数
+        // 利用 OXC 已知偏移量做位置引导的 AST 搜索，仅遍历包含目标位置的分支
+        const typeArgPos = definePropsMatch.typeArgStart
         let resolvedType: ts.Type | undefined
 
         const visit = (node: ts.Node): void => {
+          if (resolvedType) return
+          if (node.end <= typeArgPos || node.pos > typeArgPos) return
+
           if (
             ts.isCallExpression(node)
             && ts.isIdentifier(node.expression)
             && node.expression.text === 'defineProps'
             && node.typeArguments?.length === 1
           ) {
-            const typeNode = node.typeArguments[0]!
-            resolvedType = checker.getTypeFromTypeNode(typeNode)
+            resolvedType = checker.getTypeFromTypeNode(node.typeArguments[0]!)
             return
           }
           ts.forEachChild(node, visit)
