@@ -164,16 +164,9 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const typeString = serializeType(resolvedType, checker)
 
         // 第 5 步：替换源码中的类型参数
-        // scriptSetup.loc.start.offset 是 <script setup> 内容在整个 .vue 文件中的偏移量
         const offset = scriptSetup.loc.start.offset
-        const matchIndex = definePropsMatch.matchIndex
-        const fullMatch = definePropsMatch.fullMatch
-        // 定位 defineProps<...>() 中 < 和 > 的位置
-        const angleBracketStart = fullMatch.indexOf('<')
-        const angleBracketEnd = fullMatch.lastIndexOf('>')
-        // 在整个 .vue 文件中的绝对位置
-        const replaceStart = offset + matchIndex + angleBracketStart + 1
-        const replaceEnd = offset + matchIndex + angleBracketEnd
+        const replaceStart = offset + definePropsMatch.typeArgStart
+        const replaceEnd = offset + definePropsMatch.typeArgEnd
 
         const s = new MagicString(code)
         s.overwrite(replaceStart, replaceEnd, typeString)

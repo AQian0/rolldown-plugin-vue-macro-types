@@ -2,8 +2,8 @@ import { parseSync } from 'oxc-parser'
 
 type DefinePropsMatch = {
   typeArg: string
-  matchIndex: number
-  fullMatch: string
+  typeArgStart: number
+  typeArgEnd: number
 }
 
 const createUtf8ToUtf16Converter = (sourceText: string) => {
@@ -42,18 +42,13 @@ export const locateDefinePropsWithOxc = (
         && node.typeArguments?.params?.length === 1
       ) {
         const typeParam = node.typeArguments.params[0]
-        const callStart = toCharIndex(node.start)
-        const callEnd = toCharIndex(node.end)
         const typeArgStart = toCharIndex(typeParam.start)
         const typeArgEnd = toCharIndex(typeParam.end)
 
-        const typeArg = scriptContent.slice(typeArgStart, typeArgEnd)
-        const fullMatch = scriptContent.slice(callStart, callEnd)
-
         match = {
-          typeArg,
-          matchIndex: callStart,
-          fullMatch,
+          typeArg: scriptContent.slice(typeArgStart, typeArgEnd),
+          typeArgStart,
+          typeArgEnd,
         }
         return
       }
