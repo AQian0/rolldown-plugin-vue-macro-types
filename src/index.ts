@@ -59,9 +59,14 @@ const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
       return checker.typeToString(type)
     }
     const members = properties.map((prop) => {
-      const propType = checker.getTypeOfSymbol(prop)
+      const rawKey = prop.getName()
+      const key = ts.isIdentifierText(rawKey, ts.ScriptTarget.Latest)
+        ? rawKey
+        : JSON.stringify(rawKey)
+      const propType =
+        checker.getTypeOfPropertyOfType(type, rawKey)
+        ?? checker.getTypeOfSymbol(prop)
       const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0
-      const key = prop.getName()
       return `${key}${isOptional ? '?' : ''}: ${serializeType(propType, checker)}`
     })
     return `{ ${members.join('; ')} }`
