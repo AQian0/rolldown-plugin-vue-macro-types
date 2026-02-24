@@ -3,6 +3,7 @@ import { parse } from '@vue/compiler-sfc'
 import ts from 'typescript'
 import path from 'node:path'
 import MagicString from 'magic-string'
+import { locateDefinePropsWithOxc } from './locateDefineProps.ts'
 
 type VueMacroTypesOptions = {
   tsconfig?: string
@@ -60,12 +61,10 @@ const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
     }
     const members = properties.map((prop) => {
       const rawKey = prop.getName()
-      const key = ts.isIdentifierText(rawKey, ts.ScriptTarget.Latest)
+      const key = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u.test(rawKey)
         ? rawKey
         : JSON.stringify(rawKey)
-      const propType =
-        checker.getTypeOfPropertyOfType(type, rawKey)
-        ?? checker.getTypeOfSymbol(prop)
+      const propType = checker.getTypeOfSymbol(prop)
       const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0
       return `${key}${isOptional ? '?' : ''}: ${serializeType(propType, checker)}`
     })
@@ -91,13 +90,11 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const scriptSetup = descriptor.scriptSetup
         if (!scriptSetup || scriptSetup.lang !== 'ts') return
 
-        // 简单检测：是否包含 defineProps 的类型参数调用
-        const definePropsMatch = scriptSetup.content.match(
-          /defineProps\s*<([^>]+)>\s*\(\)/,
-        )
+        // 使用 oxc-parser 定位 defineProps<T>() 调用
+        const definePropsMatch = locateDefinePropsWithOxc(scriptSetup.content)
         if (!definePropsMatch) return
 
-        const typeArg = definePropsMatch[1]!.trim()
+        const typeArg = definePropsMatch.typeArg.trim()
         console.log(`[vue-macro-types] 检测到 defineProps<${typeArg}>() in ${id}`)
 
         // 第 2 步：构建 TS Program，获取 typeChecker
@@ -165,16 +162,9 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const typeString = serializeType(resolvedType, checker)
 
         // 第 5 步：替换源码中的类型参数
-        // scriptSetup.loc.start.offset 是 <script setup> 内容在整个 .vue 文件中的偏移量
         const offset = scriptSetup.loc.start.offset
-        const matchIndex = definePropsMatch.index!
-        const fullMatch = definePropsMatch[0]!
-        // 定位 defineProps<...>() 中 < 和 > 的位置
-        const angleBracketStart = fullMatch.indexOf('<')
-        const angleBracketEnd = fullMatch.lastIndexOf('>')
-        // 在整个 .vue 文件中的绝对位置
-        const replaceStart = offset + matchIndex + angleBracketStart + 1
-        const replaceEnd = offset + matchIndex + angleBracketEnd
+        const replaceStart = offset + definePropsMatch.typeArgStart
+        const replaceEnd = offset + definePropsMatch.typeArgEnd
 
         const s = new MagicString(code)
         s.overwrite(replaceStart, replaceEnd, typeString)
