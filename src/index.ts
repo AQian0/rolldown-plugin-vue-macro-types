@@ -88,6 +88,8 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
   let service: ts.LanguageService | undefined
   let compilerOptions: ts.CompilerOptions
   const virtualFiles = new Map<string, { content: string; version: number }>()
+  let scriptFileNamesCache: ReadonlyArray<string> = []
+  let scriptFileNamesDirty = true
   const documentRegistry = ts.createDocumentRegistry()
 
   const getService = (id: string): ts.LanguageService => {
@@ -106,7 +108,13 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
       : DEFAULT_COMPILER_OPTIONS
 
     const serviceHost: ts.LanguageServiceHost = {
-      getScriptFileNames: () => [...virtualFiles.keys()],
+      getScriptFileNames: () => {
+        if (scriptFileNamesDirty) {
+          scriptFileNamesCache = [...virtualFiles.keys()]
+          scriptFileNamesDirty = false
+        }
+        return scriptFileNamesCache as Array<string>
+      },
       getScriptVersion: (fileName) =>
         String(virtualFiles.get(fileName)?.version ?? 0),
       getScriptSnapshot: (fileName) => {
@@ -161,6 +169,7 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const scriptContent = scriptSetup.content
 
         const existing = virtualFiles.get(virtualFileName)
+        if (!existing) scriptFileNamesDirty = true
         virtualFiles.set(virtualFileName, {
           content: scriptContent,
           version: (existing?.version ?? 0) + 1,
