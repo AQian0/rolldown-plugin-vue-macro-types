@@ -3,6 +3,7 @@ import { parse } from '@vue/compiler-sfc'
 import ts from 'typescript'
 import path from 'node:path'
 import MagicString from 'magic-string'
+import { locateDefinePropsWithOxc } from './locateDefineProps'
 
 type VueMacroTypesOptions = {
   tsconfig?: string
@@ -91,13 +92,11 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const scriptSetup = descriptor.scriptSetup
         if (!scriptSetup || scriptSetup.lang !== 'ts') return
 
-        // 简单检测：是否包含 defineProps 的类型参数调用
-        const definePropsMatch = scriptSetup.content.match(
-          /defineProps\s*<([^>]+)>\s*\(\)/,
-        )
+        // 使用 oxc-parser 定位 defineProps<T>() 调用
+        const definePropsMatch = locateDefinePropsWithOxc(scriptSetup.content)
         if (!definePropsMatch) return
 
-        const typeArg = definePropsMatch[1]!.trim()
+        const typeArg = definePropsMatch.typeArg.trim()
         console.log(`[vue-macro-types] 检测到 defineProps<${typeArg}>() in ${id}`)
 
         // 第 2 步：构建 TS Program，获取 typeChecker
@@ -167,8 +166,8 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         // 第 5 步：替换源码中的类型参数
         // scriptSetup.loc.start.offset 是 <script setup> 内容在整个 .vue 文件中的偏移量
         const offset = scriptSetup.loc.start.offset
-        const matchIndex = definePropsMatch.index!
-        const fullMatch = definePropsMatch[0]!
+        const matchIndex = definePropsMatch.matchIndex
+        const fullMatch = definePropsMatch.fullMatch
         // 定位 defineProps<...>() 中 < 和 > 的位置
         const angleBracketStart = fullMatch.indexOf('<')
         const angleBracketEnd = fullMatch.lastIndexOf('>')
