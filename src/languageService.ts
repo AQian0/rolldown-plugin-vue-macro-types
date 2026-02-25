@@ -7,6 +7,7 @@ const DEFAULT_COMPILER_OPTIONS = {
   target: ts.ScriptTarget.ESNext,
   module: ts.ModuleKind.ESNext,
   moduleResolution: ts.ModuleResolutionKind.Bundler,
+  lib: ["lib.esnext.d.ts"],
   skipLibCheck: true,
 } as const satisfies ts.CompilerOptions;
 
