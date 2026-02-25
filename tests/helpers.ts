@@ -22,6 +22,18 @@ export const transformSfc = (
 };
 
 export const extractDefinePropsType = (result: TransformResult): string | null => {
-  const match = result.code.match(/defineProps<([\s\S]+?)>\(\)/);
-  return match?.[1]?.trim() ?? null;
+  const scriptMatch = result.code.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+  if (!scriptMatch) return null;
+
+  /* Match-but-skip: consume strings and comments without capturing,
+     then capture the first real defineProps type argument. */
+  const re =
+    /'[^']*'|"[^"]*"|\/\/.*$|\/\*[\s\S]*?\*\/|defineProps\s*<([\s\S]+?)>\s*\(\s*\)/gm;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(scriptMatch[1]!)) !== null) {
+    if (m[1] !== undefined) {
+      return m[1].trim();
+    }
+  }
+  return null;
 };
