@@ -19,7 +19,7 @@ export const createLanguageServiceManager = (
   options: VueMacroTypesOptions,
 ): LanguageServiceManager => {
   let service: ts.LanguageService | undefined;
-  let compilerOptions: ts.CompilerOptions;
+  let compilerOptions: ts.CompilerOptions = DEFAULT_COMPILER_OPTIONS;
   const virtualFiles = new Map<string, { content: string; version: number }>();
   let scriptFileNamesCache: ReadonlyArray<string> = [];
   let scriptFileNamesDirty = true;
