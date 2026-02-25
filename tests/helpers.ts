@@ -27,8 +27,7 @@ export const extractDefinePropsType = (result: TransformResult): string | null =
 
   /* Match-but-skip: consume strings and comments without capturing,
      then capture the first real defineProps type argument. */
-  const re =
-    /'[^']*'|"[^"]*"|\/\/.*$|\/\*[\s\S]*?\*\/|defineProps\s*<([\s\S]+?)>\s*\(\s*\)/gm;
+  const re = /'[^']*'|"[^"]*"|\/\/.*$|\/\*[\s\S]*?\*\/|defineProps\s*<([\s\S]+?)>\s*\(\s*\)/gm;
   let m: RegExpExecArray | null;
   while ((m = re.exec(scriptMatch[1]!)) !== null) {
     if (m[1] !== undefined) {
