@@ -4,7 +4,7 @@ const VALID_IDENTIFIER_RE = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u
 
 /** Recursively serializes a `ts.Type` into a type literal string. */
 export const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
-  if (type.isStringLiteral()) return `'${type.value}'`;
+  if (type.isStringLiteral()) return `'${type.value.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
   if (type.isNumberLiteral()) return `${type.value}`;
 
   const flags = type.getFlags();
