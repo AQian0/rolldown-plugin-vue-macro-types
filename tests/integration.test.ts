@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { getHandler } from './helpers'
+import { describe, it, expect } from "vitest";
+import { getHandler } from "./helpers";
 
-describe('integration', () => {
-  it('should handle complete Vue SFC with template and style', () => {
-    const handler = getHandler()
+describe("integration", () => {
+  it("should handle complete Vue SFC with template and style", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 type Props = {
   title: string
@@ -24,17 +24,17 @@ defineProps<Props>()
   padding: 20px;
 }
 </style>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('title: string')
-    expect(result!.code).toContain('count: number')
-    expect(result!.code).toContain('<template>')
-    expect(result!.code).toContain('<style scoped>')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("title: string");
+    expect(result!.code).toContain("count: number");
+    expect(result!.code).toContain("<template>");
+    expect(result!.code).toContain("<style scoped>");
+  });
 
-  it('should handle SFC with multiple script blocks', () => {
-    const handler = getHandler()
+  it("should handle SFC with multiple script blocks", () => {
+    const handler = getHandler();
     const code = `<script lang="ts">
 export const CONSTANT = 42
 </script>
@@ -47,14 +47,14 @@ defineProps<Props>()
 <template>
   <div>{{ value }}</div>
 </template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('value: string')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("value: string");
+  });
 
-  it('should preserve source map correctness', () => {
-    const handler = getHandler()
+  it("should preserve source map correctness", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 type User = {
   id: number
@@ -65,16 +65,16 @@ defineProps<Props>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.map).toBeDefined()
-    expect(result!.map).toHaveProperty('mappings')
-    expect(result!.map).toHaveProperty('sources')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.map).toBeDefined();
+    expect(result!.map).toHaveProperty("mappings");
+    expect(result!.map).toHaveProperty("sources");
+  });
 
-  it('should handle SFC with imports', () => {
-    const handler = getHandler()
+  it("should handle SFC with imports", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 import type { BaseProps } from './types'
 
@@ -85,14 +85,14 @@ defineProps<Props>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('extra')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("extra");
+  });
 
-  it('should handle SFC with defineEmits', () => {
-    const handler = getHandler()
+  it("should handle SFC with defineEmits", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 type Props = { value: string }
 type Emits = {
@@ -105,14 +105,14 @@ defineEmits<Emits>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('value: string')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("value: string");
+  });
 
-  it('should handle SFC with defineModel', () => {
-    const handler = getHandler()
+  it("should handle SFC with defineModel", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 type Props = { label: string }
 defineProps<Props>()
@@ -120,14 +120,14 @@ const modelValue = defineModel<string>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('label: string')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("label: string");
+  });
 
-  it('should handle SFC with complex prop and computed', () => {
-    const handler = getHandler()
+  it("should handle SFC with complex prop and computed", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 import { computed } from 'vue'
 
@@ -144,15 +144,15 @@ const fullName = computed(() => \`\${props.user.firstName} \${props.user.lastNam
 <template>
   <div>{{ fullName }}</div>
 </template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('firstName')
-    expect(result!.code).toContain('lastName')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("firstName");
+    expect(result!.code).toContain("lastName");
+  });
 
-  it('should handle SFC with generic components', () => {
-    const handler = getHandler()
+  it("should handle SFC with generic components", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts" generic="T extends { id: number }">
 type Props = {
   items: Array<T>
@@ -162,14 +162,14 @@ defineProps<Props>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('items')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("items");
+  });
 
-  it('should handle props destructuring with defaults', () => {
-    const handler = getHandler()
+  it("should handle props destructuring with defaults", () => {
+    const handler = getHandler();
     const code = `<script setup lang="ts">
 type Props = {
   title: string
@@ -181,27 +181,27 @@ const { title, count = 0, enabled = true } = defineProps<Props>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('title: string')
-  })
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("title: string");
+  });
 
-  it('should handle large type definitions', () => {
-    const handler = getHandler()
-    const properties = Array.from({ length: 50 }, (_, i) => `prop${i}: string`)
+  it("should handle large type definitions", () => {
+    const handler = getHandler();
+    const properties = Array.from({ length: 50 }, (_, i) => `prop${i}: string`);
     const code = `<script setup lang="ts">
 type Props = {
-  ${properties.join('\n  ')}
+  ${properties.join("\n  ")}
 }
 defineProps<Props>()
 </script>
 
 <template><div /></template>
-`
-    const result = handler(code, '/tmp/Component.vue')
-    expect(result).toBeDefined()
-    expect(result!.code).toContain('prop0')
-    expect(result!.code).toContain('prop49')
-  })
-})
+`;
+    const result = handler(code, "/tmp/Component.vue");
+    expect(result).toBeDefined();
+    expect(result!.code).toContain("prop0");
+    expect(result!.code).toContain("prop49");
+  });
+});
