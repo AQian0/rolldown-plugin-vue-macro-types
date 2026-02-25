@@ -2,19 +2,13 @@ import ts from 'typescript'
 
 const VALID_IDENTIFIER_RE = /^[$_\p{ID_Start}][$\u200C\u200D\p{ID_Continue}]*$/u
 
-/**
- * 将 TS Type 对象递归序列化为类型字面量字符串
- * 例如：InferInput<typeof schema> → { name: string; age: number }
- */
+/** Recursively serializes a `ts.Type` into a type literal string. */
 export const serializeType = (type: ts.Type, checker: ts.TypeChecker): string => {
-  // 字符串字面量
   if (type.isStringLiteral()) return `'${type.value}'`
-  // 数字字面量
   if (type.isNumberLiteral()) return `${type.value}`
 
   const flags = type.getFlags()
 
-  // 基础类型
   if (flags & ts.TypeFlags.String) return 'string'
   if (flags & ts.TypeFlags.Number) return 'number'
   if (flags & ts.TypeFlags.Boolean) return 'boolean'
@@ -28,17 +22,14 @@ export const serializeType = (type: ts.Type, checker: ts.TypeChecker): string =>
   if (flags & ts.TypeFlags.Unknown) return 'unknown'
   if (flags & ts.TypeFlags.Never) return 'never'
 
-  // 联合类型
   if (type.isUnion()) {
     return type.types.map((t) => serializeType(t, checker)).join(' | ')
   }
 
-  // 交叉类型
   if (type.isIntersection()) {
     return type.types.map((t) => serializeType(t, checker)).join(' & ')
   }
 
-  // 数组类型
   if (checker.isArrayType(type)) {
     const typeArgs = checker.getTypeArguments(type as ts.TypeReference)
     if (typeArgs.length === 1) {
@@ -46,7 +37,6 @@ export const serializeType = (type: ts.Type, checker: ts.TypeChecker): string =>
     }
   }
 
-  // 对象类型：递归展开属性
   if (flags & ts.TypeFlags.Object) {
     const properties = checker.getPropertiesOfType(type)
     if (properties.length === 0) {
@@ -64,6 +54,5 @@ export const serializeType = (type: ts.Type, checker: ts.TypeChecker): string =>
     return `{ ${members.join('; ')} }`
   }
 
-  // fallback：让 TS 自己转字符串
   return checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation)
 }

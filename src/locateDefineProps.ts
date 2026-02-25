@@ -6,17 +6,12 @@ type DefinePropsMatch = {
   typeArgEnd: number
 }
 
-/**
- * 创建 UTF-8 byte offset → UTF-16 char offset 的转换器。
- * ASCII 文本直接返回恒等函数（零开销），非 ASCII 则单次遍历构建查找表后 O(1) 查询。
- */
+/** Converts UTF-8 byte offsets to UTF-16 char offsets. */
 const createByteToCharConverter = (sourceText: string): (byteOffset: number) => number => {
-  // Fast path: 全 ASCII 时 byte offset === char offset
   if (!/[^\x00-\x7F]/.test(sourceText)) {
     return (byteOffset) => byteOffset
   }
 
-  // Slow path: 单次遍历构建 byte→char 查找表
   const byteToChar: Array<number> = []
   let byteOffset = 0
 
@@ -49,13 +44,11 @@ const createByteToCharConverter = (sourceText: string): (byteOffset: number) => 
   }
 }
 
-// OXC AST 最小类型定义
 type AstNode = Record<string, unknown>
 
 const isAstNode = (value: unknown): value is AstNode =>
   value !== null && typeof value === 'object'
 
-/** 从 CallExpression 中提取 defineProps 的类型参数节点 */
 const getDefinePropsTypeParam = (node: AstNode): { start: number; end: number } | undefined => {
   if (node.type !== 'CallExpression') return undefined
 
@@ -74,10 +67,7 @@ const getDefinePropsTypeParam = (node: AstNode): { start: number; end: number } 
   return { start: param.start as number, end: param.end as number }
 }
 
-/**
- * 使用 oxc-parser 定位 defineProps<T>() 调用
- * 替代正则表达式 /defineProps\s*<([^>]+)>\s*\(\)/
- */
+/** Locates the `defineProps<T>()` call using oxc-parser. */
 export const locateDefinePropsWithOxc = (
   scriptContent: string,
 ): DefinePropsMatch | undefined => {

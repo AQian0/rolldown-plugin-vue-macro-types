@@ -17,7 +17,6 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
     name: 'vue-macro-types',
 
     buildStart() {
-      // 预热 LanguageService，将初始化开销从首次 transform 中移出
       getService(path.join(process.cwd(), '__warmup__.ts'))
     },
 
@@ -32,11 +31,9 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const scriptSetup = descriptor.scriptSetup
         if (!scriptSetup || scriptSetup.lang !== 'ts') return
 
-        // 使用 oxc-parser 定位 defineProps<T>() 调用
         const definePropsMatch = locateDefinePropsWithOxc(scriptSetup.content)
         if (!definePropsMatch) return
 
-        // 更新虚拟文件并从共享 LanguageService 获取 program
         const virtualFileName = id + '.__setup.ts'
         updateVirtualFile(virtualFileName, scriptSetup.content)
 
@@ -48,7 +45,6 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
         const sourceFile = program.getSourceFile(virtualFileName)
         if (!sourceFile) return
 
-        // 利用 OXC 已知偏移量做位置引导的 AST 搜索，仅遍历包含目标位置的分支
         const typeArgPos = definePropsMatch.typeArgStart
         let resolvedType: ts.Type | undefined
 
@@ -73,7 +69,6 @@ export const vueMacroTypes = (options: VueMacroTypesOptions = {}): Plugin => {
 
         const typeString = serializeType(resolvedType, checker)
 
-        // 替换源码中的类型参数
         const offset = scriptSetup.loc.start.offset
         const replaceStart = offset + definePropsMatch.typeArgStart
         const replaceEnd = offset + definePropsMatch.typeArgEnd
