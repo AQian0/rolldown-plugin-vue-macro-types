@@ -1,6 +1,7 @@
 {
   "name": "rolldown-plugin-vue-macro-types",
   "version": "0.0.1",
+  "license": "MIT",
   "files": [
     "dist"
   ],
