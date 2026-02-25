@@ -58,26 +58,30 @@ export const serializeType = (
     }
     seen.add(type);
 
-    const properties = checker.getPropertiesOfType(type);
-    if (properties.length === 0) {
-      const objectType = type as ts.ObjectType;
-      const hasSignatures =
-        checker.getSignaturesOfType(type, ts.SignatureKind.Call).length > 0 ||
-        checker.getSignaturesOfType(type, ts.SignatureKind.Construct).length > 0 ||
-        checker.getIndexInfosOfType(type).length > 0 ||
-        (objectType.objectFlags & ts.ObjectFlags.Reference) !== 0;
-      if (!hasSignatures) return "{}";
-      return checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation);
+    try {
+      const properties = checker.getPropertiesOfType(type);
+      if (properties.length === 0) {
+        const objectType = type as ts.ObjectType;
+        const hasSignatures =
+          checker.getSignaturesOfType(type, ts.SignatureKind.Call).length > 0 ||
+          checker.getSignaturesOfType(type, ts.SignatureKind.Construct).length > 0 ||
+          checker.getIndexInfosOfType(type).length > 0 ||
+          (objectType.objectFlags & ts.ObjectFlags.Reference) !== 0;
+        if (!hasSignatures) return "{}";
+        return checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation);
+      }
+      const members = properties.map((prop) => {
+        const rawKey = prop.getName();
+        const key = VALID_IDENTIFIER_RE.test(rawKey) ? rawKey : JSON.stringify(rawKey);
+        const propType = checker.getTypeOfSymbol(prop);
+        const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0;
+        const isReadonly = isReadonlyProperty(prop);
+        return `${isReadonly ? "readonly " : ""}${key}${isOptional ? "?" : ""}: ${serializeType(propType, checker, seen)}`;
+      });
+      return `{ ${members.join("; ")} }`;
+    } finally {
+      seen.delete(type);
     }
-    const members = properties.map((prop) => {
-      const rawKey = prop.getName();
-      const key = VALID_IDENTIFIER_RE.test(rawKey) ? rawKey : JSON.stringify(rawKey);
-      const propType = checker.getTypeOfSymbol(prop);
-      const isOptional = (prop.getFlags() & ts.SymbolFlags.Optional) !== 0;
-      const isReadonly = isReadonlyProperty(prop);
-      return `${isReadonly ? "readonly " : ""}${key}${isOptional ? "?" : ""}: ${serializeType(propType, checker, seen)}`;
-    });
-    return `{ ${members.join("; ")} }`;
   }
 
   return checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation);
